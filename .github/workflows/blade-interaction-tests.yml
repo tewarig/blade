@@ -1,43 +1,89 @@
-name: Blade Interaction Tests
-
-# Runs the action when
-# 1. 'Run Interaction Tests' label is added to PR
-# 2. Workflow is trigerred manually
-# 3. PR is merged to master
-# 4. Any commit is pushed or merged
-
+name: Update Icons JSON
 
 on:
-  workflow_dispatch:
-# Interaction tests use Chromatic. Running them on every commit will quickly exhaust limited Chromatic usage.
-  pull_request:
-    types: [labeled]
   push:
     branches:
-      - 'master'
-env:
-  GITHUB_ACCESS_TOKEN: ${{ secrets.CI_BOT_TOKEN }}
+      - main
+      - feat/automate-icon-addition
+  workflow_dispatch:
 
 jobs:
-  interaction-tests:
-    name: Run Interaction Tests
-    runs-on: ubuntu-latest # nosemgrep: non-self-hosted-runner
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.label.name == 'Run Interaction Tests' || github.event_name == 'push' }}
+  update-icons:
+    runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Codebase
-        uses: actions/checkout@v3
-      - name: Use Node v18
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18.12.1
-      - name: Setup Cache & Install Dependencies
-        uses: ./.github/actions/install-dependencies
-      - name: Install Playwright Dependencies Manually
+          node-version: '18' # native fetch supported
+
+      - name: Update icons.json
+        env:
+          FIGMA_API_TOKEN: ${{ secrets.FIGMA_API_TOKEN }}
+          FILE_ID: 'jubmQL9Z8V7881ayUD95ps'
+          NODE_ID: '103317-3667'
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libasound2t64 libffi8 libx264-dev
-      - name: Run Interaction Tests
-        run: |
-          npx playwright install chromium firefox --with-deps
-          yarn test:react:interaction:ci
-        working-directory: packages/blade
+          node --input-type=module <<'EOF'
+          const { writeFile, readFile, access } = await import('fs/promises');
+          const { constants } = await import('fs');
+          const path = 'packages/blade/scripts/icons.json';
+
+          const token = process.env.FIGMA_API_TOKEN;
+          const fileId = process.env.FILE_ID;
+          const nodeId = process.env.NODE_ID;
+
+          async function updateIconsJson(componentNames, svgData) {
+            let iconsJson = [];
+
+            try {
+              await access(path, constants.F_OK);
+              const data = await readFile(path, 'utf8');
+              iconsJson = JSON.parse(data);
+            } catch (e) {
+              console.log('icons.json not found, creating a new one');
+            }
+
+            componentNames.forEach((name, index) => {
+              const sanitizedName = name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+              iconsJson.push({ [sanitizedName]: svgData[index] });
+            });
+
+            await writeFile(path, JSON.stringify(iconsJson, null, 2), 'utf8');
+            console.log('Updated icons.json');
+          }
+
+          async function fetchComponentSVGs(componentIds, componentNames) {
+            const res = await fetch(`https://api.figma.com/v1/images/${fileId}?ids=${componentIds.join(',')}&format=svg`, {
+              headers: { 'X-Figma-Token': token }
+            });
+
+            const imageUrls = (await res.json()).images;
+            const svgData = await Promise.all(componentIds.map(async (id) => {
+              const svgRes = await fetch(imageUrls[id]);
+              return await svgRes.text();
+            }));
+
+            await updateIconsJson(componentNames, svgData);
+          }
+
+          async function fetchNode() {
+            const res = await fetch(`https://api.figma.com/v1/files/${fileId}/nodes?ids=${nodeId}`, {
+              headers: { 'X-Figma-Token': token }
+            });
+
+            const nodeData = await res.json();
+            const { nodes } = nodeData;
+            const key = Object.keys(nodes)[0];
+            const componentsToBeAdded = nodes[key].document.children;
+
+            const componentIds = componentsToBeAdded.map(c => c.id);
+            const componentNames = componentsToBeAdded.map(c => c.name);
+
+            await fetchComponentSVGs(componentIds, componentNames);
+          }
+
+          await fetchNode();
+          EOF
