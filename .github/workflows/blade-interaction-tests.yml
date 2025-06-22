@@ -88,6 +88,9 @@ jobs:
 
           await fetchNode();
           EOF
+
+      - name: Print icons.json contents
+        run: cat packages/blade/scripts/icons.json
       - name: Commit changes
         run: |
           git config --global user.name 'github-actions[bot]'
