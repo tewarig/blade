@@ -52,6 +52,7 @@ jobs:
             });
 
             await writeFile(path, JSON.stringify(iconsJson, null, 2), 'utf8');
+            cat packages/blade/scripts/icons.json
             console.log('Updated icons.json');
           }
 
