@@ -50,6 +50,7 @@ jobs:
               const sanitizedName = name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
               iconsJson.push({ [sanitizedName]: svgData[index] });
             });
+            console.log("IconJson" , iconsJson);
 
             await writeFile(path, JSON.stringify(iconsJson, null, 2), 'utf8');
             console.log('Updated icons.json');
