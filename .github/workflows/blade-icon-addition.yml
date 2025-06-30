@@ -106,3 +106,9 @@ jobs:
 
         fetchNode();
         "
+    - name: Upload Icons and Create PR
+      run: |
+        cd packages/blade
+        node scripts/uploadIcons.js
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
