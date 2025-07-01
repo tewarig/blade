@@ -1,47 +1,38 @@
-name: Create Empty File PR
+name: Create PR on Demand
 
 on:
-  workflow_dispatch:   # Allows you to trigger this workflow manually
+  workflow_dispatch:
 
 jobs:
   create-pr:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Git
+      - name: Set up Git config
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name 'Your Name'
+          git config user.email 'your-email@example.com'
 
-      - name: Create branch
+      - name: Modify tracked file
         run: |
-          BRANCH="add-empty-file-$(date +%s)"
-          git checkout -b $BRANCH
-          echo "" > empty.txt
-          git add empty.txt
-          git commit -m "Add empty file"
-          git push origin $BRANCH
-          echo "BRANCH=$BRANCH" >> $GITHUB_ENV
+          date +%s > report.txt
+          git commit -am "Modify tracked file during workflow"
+
+      - name: Add new untracked file
+        run: |
+          date +%s > new-report.txt
+          git add new-report.txt
+          git commit -m "Add untracked file during workflow"
+
+      - name: Make uncommitted change
+        run: date +%s > report.txt
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          title: "Add empty file"
-          body: "This PR adds an empty file called empty.txt"
-          head: ${{ env.BRANCH }}
-          base: master
-      - name: Check PR Creation Result
-        run: |
-          if [ "${{ steps.create-pr.outcome }}" = "failure" ]; then
-            echo "❌ PR creation failed"
-            exit 1
-          elif [ "${{ steps.create-pr.outputs.pull-request-number }}" = "" ]; then
-            echo "⚠️ PR creation succeeded but no PR number returned - likely a silent failure"
-            exit 1
-          else
-            echo "✅ PR created successfully: #${{ steps.create-pr.outputs.pull-request-number }}"
-            echo "🔗 PR URL: ${{ steps.create-pr.outputs.pull-request-url }}"
-          fi
+          commit-message: "Automated changes"
+          title: "Automated PR: Update reports"
+          body: |
+            This PR was created automatically via GitHub Actions.
+          branch: auto/pr-update-${{ github.run_number }}
