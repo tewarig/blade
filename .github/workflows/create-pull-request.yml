@@ -33,3 +33,15 @@ jobs:
           body: "This PR adds an empty file called empty.txt"
           head: ${{ env.BRANCH }}
           base: master
+      - name: Check PR Creation Result
+        run: |
+          if [ "${{ steps.create-pr.outcome }}" = "failure" ]; then
+            echo "❌ PR creation failed"
+            exit 1
+          elif [ "${{ steps.create-pr.outputs.pull-request-number }}" = "" ]; then
+            echo "⚠️ PR creation succeeded but no PR number returned - likely a silent failure"
+            exit 1
+          else
+            echo "✅ PR created successfully: #${{ steps.create-pr.outputs.pull-request-number }}"
+            echo "🔗 PR URL: ${{ steps.create-pr.outputs.pull-request-url }}"
+          fi
