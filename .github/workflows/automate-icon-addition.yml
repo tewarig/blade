@@ -1,0 +1,117 @@
+name: Automate Icon Addition
+
+on:
+  workflow_dispatch:
+    inputs:
+      icon_names:
+        description: 'Comma-separated list of icon names to fetch'
+        required: true
+        type: string
+      svg_data:
+        description: 'Comma-separated list of SVG data corresponding to icon names'
+        required: true
+        type: string
+
+jobs:
+  process-icons:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: |
+          yarn install --frozen-lockfile
+
+      - name: Process Icons and Generate Components
+        run: |
+          cd packages/blade
+          
+          # Parse input data and create icons.json
+          node -e "
+            const fs = require('fs');
+            const path = require('path');
+            
+            const iconNames = process.argv[1].split(',').map(s => s.trim());
+            const svgData = process.argv[2].split(',').map(s => s.trim());
+            const iconsJson = [];
+            
+            iconNames.forEach((name, index) => {
+              if (svgData[index]) {
+                const sanitizedName = name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                iconsJson.push({ [sanitizedName]: svgData[index] });
+              }
+            });
+            
+            console.log('IconJson', iconsJson);
+            
+            const iconPath = './scripts/icons.json';
+            fs.writeFileSync(iconPath, JSON.stringify(iconsJson, null, 2), 'utf8');
+            console.log('Updated icons.json');
+          " "${{ github.event.inputs.icon_names }}" "${{ github.event.inputs.svg_data }}"
+          
+          # Generate icon components
+          echo "Generating icon components..."
+          node scripts/generateIcons.mjs
+
+      - name: Create Branch and Push Changes
+        run: |
+          cd packages/blade
+          
+          # Check if there are any changes to commit
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No changes detected, skipping PR creation"
+            exit 0
+          fi
+          
+          # Generate random branch name using Node.js
+          BRANCH_NAME=$(node -e "
+            const randomWords = ['swift', 'bright', 'quick', 'smart', 'clean', 'fresh', 'bold', 'sharp'];
+            const randomNouns = ['icon', 'update', 'patch', 'fix', 'change', 'feature'];
+            const word1 = randomWords[Math.floor(Math.random() * randomWords.length)];
+            const word2 = randomNouns[Math.floor(Math.random() * randomNouns.length)];
+            const timestamp = Date.now().toString().slice(-4);
+            console.log(\`automate-icons-\${word1}-\${word2}-\${timestamp}\`);
+          ")
+          
+          echo "Creating branch: $BRANCH_NAME"
+          
+          # Setup git config
+          git config user.email "tools+cibot@razorpay.com"
+          git config user.name "rzpcibot"
+          
+          # Create and checkout new branch
+          git checkout -b $BRANCH_NAME
+          
+          # Commit all changes
+          echo "Committing changes..."
+          git status
+          git add -A
+          git commit -m "feat(icons): add new icons" --no-verify
+          
+          # Push branch
+          echo "Pushing branch..."
+          git push origin $BRANCH_NAME
+          
+          # Generate PR body with icon list
+          PR_BODY=$(node -e "
+            const fs = require('fs');
+            let iconList = '';
+            try {
+              const icons = JSON.parse(fs.readFileSync('./scripts/icons.json', 'utf8'));
+              iconList = icons.map(icon => \`- \${Object.keys(icon)[0]}\`).join('\\\\n');
+            } catch (e) {
+              iconList = '- Icons processed successfully';
+            }
+            
+            const body = \`This PR was opened by the Icon Upload GitHub action. It updates icon component files based on new icon data from Figma.
+            
