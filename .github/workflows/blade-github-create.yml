@@ -105,6 +105,7 @@ jobs:
               const componentIds = componentsToBeAdded.map(component => component.id);
               const componentNames = componentsToBeAdded.map(component => component.name);
               fetchComponentSVGs(componentIds, componentNames);
+              //
             } catch (error) {
               console.error('Error fetching node:', error);
             }
@@ -114,6 +115,10 @@ jobs:
           "
       - name : Uninstall Axios
         run: npm uninstall axios
+      - name : Update icons Script
+        run: | 
+          cd packages/blade
+          npx generate-icons
       # 4. create the pull request
       - name: Create Pull Request
         id: cpr
