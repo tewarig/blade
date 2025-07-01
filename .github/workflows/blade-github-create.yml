@@ -73,6 +73,3 @@ jobs:
           delete-branch: true   # cleans up after merge
 
       # 6. surface the PR URL in the logs
-      - name: Output PR URL
-        if: steps.cpr.outputs.pull-request-url != ''
-        run: echo "Pull request created: ${{ steps.cpr.outputs.pull-request-url }}"
