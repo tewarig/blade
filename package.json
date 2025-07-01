@@ -31,7 +31,9 @@
     "aicodemod:serve": "node packages/blade/codemods/aicodemod/server.mjs",
     "aicodemod:host": "npx localtunnel --port 3000 --subdomain blade-ds"
   },
-  "dependencies": {},
+  "dependencies": {
+    "axios": "^1.10.0"
+  },
   "devDependencies": {
     "@babel/core": "7.21.8",
     "@babel/eslint-parser": "7.21.8",
