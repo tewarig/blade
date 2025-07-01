@@ -119,7 +119,7 @@ jobs:
       # - name : Uninstall Axios
       #   run: npm uninstall axios
       - name : Update icons Script
-       run: |
+        run: |
          cd packages/blade
          yarn install --frozen-lockfile
          node ./scripts/generateIcons.mjs
