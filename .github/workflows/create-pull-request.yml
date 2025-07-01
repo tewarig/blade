@@ -1,4 +1,4 @@
-name: Create PR on Demand
+name: Create PR from Manual Run
 
 on:
   workflow_dispatch:
@@ -11,28 +11,39 @@ jobs:
 
       - name: Set up Git config
         run: |
-          git config user.name 'Your Name'
-          git config user.email 'your-email@example.com'
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
+      # Create a new branch from master
+      - name: Create and checkout new branch
+        run: |
+          git fetch origin
+          git checkout -b auto/update-${{ github.run_number }}
+
+      # Make tracked file changes and commit
       - name: Modify tracked file
         run: |
-          date +%s > report.txt
-          git commit -am "Modify tracked file during workflow"
+          echo "Tracked: $(date +%s)" > report.txt
+          git add report.txt
+          git commit -m "Update tracked file"
 
+      # Add and commit untracked file
       - name: Add new untracked file
         run: |
-          date +%s > new-report.txt
+          echo "Untracked: $(date +%s)" > new-report.txt
           git add new-report.txt
-          git commit -m "Add untracked file during workflow"
+          git commit -m "Add new report file"
 
-      - name: Make uncommitted change
-        run: date +%s > report.txt
+      # Push the new branch
+      - name: Push branch
+        run: |
+          git push origin HEAD
 
+      # Create Pull Request
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
-          commit-message: "Automated changes"
+          commit-message: "Auto: update reports"
           title: "Automated PR: Update reports"
-          body: |
-            This PR was created automatically via GitHub Actions.
-          branch: auto/pr-update-${{ github.run_number }}
+          body: "This PR includes updated report files."
+          branch: auto/update-${{ github.run_number }}
