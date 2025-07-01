@@ -24,8 +24,10 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '20'
+          node-version: '14'
 
+      - name: Install dependencies
+        run: npm install axios
       
       - name: Update icons.json
         env:
@@ -57,17 +59,17 @@ jobs:
           }
   
           async function fetchComponentSVGs(componentIds, componentNames) {
-              const url = new URL(`https://api.figma.com/v1/images/${FILE_ID}`);
-              url.searchParams.append('ids', componentIds.join(','));
-              url.searchParams.append('format', 'svg');
-              const response = await fetch(url.toString(), {
-              headers: {
-                 'X-Figma-Token': FIGMA_API_TOKEN,
+            try {
+              const response = await axios.get(\`https://api.figma.com/v1/images/${FILE_ID}\`, {
+                headers: {
+                  'X-Figma-Token': process.env.FIGMA_API_TOKEN
                 },
+                params: {
+                  ids: componentIds.join(','),
+                  format: 'svg'
+                }
               });
-
-              console.log("url", url);
-
+  
               const imageUrls = response.data.images;
               console.log('SVG URLs:', imageUrls);
   
@@ -110,7 +112,8 @@ jobs:
   
           fetchNode();
           "
-  
+      - name : Uninstall Axios
+        run: npm install axios
       # 4. create the pull request
       - name: Create Pull Request
         id: cpr
