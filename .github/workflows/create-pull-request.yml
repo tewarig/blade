@@ -32,4 +32,4 @@ jobs:
           title: "Add empty file"
           body: "This PR adds an empty file called empty.txt"
           head: ${{ env.BRANCH }}
-          base: main
+          base: master
