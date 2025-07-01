@@ -24,7 +24,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: '20'
 
       - name: Install dependencies
         run: npm install axios
@@ -118,7 +118,7 @@ jobs:
       - name : Update icons Script
         run: | 
           cd packages/blade
-          npx generate-icons
+          node ./scripts/generateIcons.mjs
       # 4. create the pull request
       - name: Create Pull Request
         id: cpr
