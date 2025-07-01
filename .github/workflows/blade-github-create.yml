@@ -24,7 +24,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: '20'
 
       - name: Install dependencies
         run: npm install axios
@@ -59,17 +59,15 @@ jobs:
           }
   
           async function fetchComponentSVGs(componentIds, componentNames) {
-            try {
-              const response = await axios.get(\`https://api.figma.com/v1/images/${FILE_ID}\`, {
-                headers: {
-                  'X-Figma-Token': process.env.FIGMA_API_TOKEN
+              const url = new URL(`https://api.figma.com/v1/images/${FILE_ID}`);
+              url.searchParams.append('ids', componentIds.join(','));
+              url.searchParams.append('format', 'svg');
+              const response = await fetch(url.toString(), {
+              headers: {
+                 'X-Figma-Token': FIGMA_API_TOKEN,
                 },
-                params: {
-                  ids: componentIds.join(','),
-                  format: 'svg'
-                }
               });
-  
+
               const imageUrls = response.data.images;
               console.log('SVG URLs:', imageUrls);
   
