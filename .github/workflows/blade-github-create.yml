@@ -113,7 +113,7 @@ jobs:
           fetchNode();
           "
       - name : Uninstall Axios
-        run: npm install axios
+        run: npm uninstall axios
       # 4. create the pull request
       - name: Create Pull Request
         id: cpr
