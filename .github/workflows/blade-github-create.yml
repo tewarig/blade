@@ -46,4 +46,4 @@ jobs:
           commit-message: "Auto: update reports"
           title: "Automated PR: Update reports"
           body: "This PR includes updated report files."
-          branch: auto/update-${{ github.run_number }}
+          branch: feat/auto-update-${{ github.run_number }}
