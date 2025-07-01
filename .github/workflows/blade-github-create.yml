@@ -63,7 +63,7 @@ jobs:
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ env.BRANCH_NAME }}
+          branch: random-file-${{ github.run_id }}
           base: master
           title: "feat: add random file"
           body: |
