@@ -66,6 +66,8 @@ jobs:
                 },
               });
 
+              console.log("url", url);
+
               const imageUrls = response.data.images;
               console.log('SVG URLs:', imageUrls);
   
