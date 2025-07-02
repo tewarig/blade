@@ -35,57 +35,12 @@ jobs:
       - name: Update icons.json
         env:
           FIGMA_API_TOKEN: ${{ secrets.FIGMA_API_TOKEN }}
-          FILE_ID: 'jubmQL9Z8V7881ayUD95ps'
-          NODE_ID: '103317-3667'
         run: |
-         node -e"
-         const fs = require('fs');
-         const path = require('path');
-         const FILE_ID = process.env.FILE_ID;
-         const NODE_ID = process.env.NODE_ID;
-         const TOKEN = process.env.FIGMA_API_TOKEN;
-    
-          const updateIconsJson = async (names, svgs) => {
-            const file = path.join(__dirname, 'packages/blade/scripts/icons.json');
-            let json = [];
-            if (fs.existsSync(file)) {
-              try { json = JSON.parse(fs.readFileSync(file, 'utf8')); } catch {}
-            }
-            names.forEach((n, i) => {
-              const safeName = n.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-              json.push({ [safeName]: svgs[i] });
-            });
-            fs.writeFileSync(file, JSON.stringify(json, null, 2));
-            console.log('✅ icons.json updated');
-          };
-    
-          const fetchComponentSVGs = async (ids, names) => {
-            const url = new URL('https://api.figma.com/v1/images/' + FILE_ID);
-            url.searchParams.set('ids', ids.join(','));
-            url.searchParams.set('format', 'svg');
-            const res = await fetch(url, { headers: { 'X-Figma-Token': TOKEN } });
-            const data = await res.json();
-            const svgData = await Promise.all(ids.map(id => fetch(data.images[id]).then(r => r.text())));
-            await updateIconsJson(names, svgData);
-          };
-    
-          const fetchNode = async () => {
-            const url = new URL('https://api.figma.com/v1/files/' + FILE_ID + '/nodes');
-            url.searchParams.set('ids', NODE_ID);
-            const res = await fetch(url, { headers: { 'X-Figma-Token': TOKEN } });
-            const data = await res.json();
-            const node = data.nodes[Object.keys(data.nodes)[0]];
-            const components = node.document.children || [];
-            const ids = components.map(c => c.id);
-            const names = components.map(c => c.name);
-            if (!ids.length) return console.log('⚠️ No components found.');
-            await fetchComponentSVGs(ids, names);
-          };
-    
-          fetchNode();
-         "
-      # - name : Uninstall Axios
-      #   run: npm uninstall axios
+         
+          node -e "
+          node ./scripts/getSvgFromFigma.js
+  
+  
       - name : Update icons Script
         run: |
          cd packages/blade
