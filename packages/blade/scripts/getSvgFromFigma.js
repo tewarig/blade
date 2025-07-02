@@ -6,7 +6,7 @@ const FILE_ID = 'jubmQL9Z8V7881ayUD95ps';
 const NODE_ID = '103317-3667';
 
 async function updateIconsJson(componentNames, svgData) {
-  const iconsFilePath = path.join(__dirname, 'packages/blade/scripts/icons.json');
+  const iconsFilePath = path.join(__dirname, 'icons.json');
   let iconsJson = [];
   if (fs.existsSync(iconsFilePath)) {
     const data = fs.readFileSync(iconsFilePath, 'utf8');
@@ -53,8 +53,7 @@ async function fetchNode() {
   try {
     const response = await axios.get(`https://api.figma.com/v1/files/${FILE_ID}/nodes`, {
       headers: {
-        'X-Figma-Token':
-          process.env.FIGMA_API_TOKEN,
+        'X-Figma-Token': process.env.FIGMA_API_TOKEN,
       },
       params: {
         ids: NODE_ID,
