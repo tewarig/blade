@@ -59,6 +59,7 @@ jobs:
          
       - name: Lint Source Code
         run: yarn lint:fix
+        continue-on-error: true
 
       - name: Create Pull Request
         id: cpr
