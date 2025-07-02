@@ -47,6 +47,19 @@ jobs:
          cd packages/blade
          node ./scripts/generateIcons.mjs
       # 4. create the pull request
+      - name : Update React Tests 
+        run: |
+         cd packages/blade
+         yarn run test:react --updateSnapshot 
+
+      - name : Update React Tests 
+        run: |
+          cd packages/blade
+          yarn run test:react-native --updateSnapshot 
+         
+      - name: Lint Source Code
+        run: yarn lint
+
       - name: Create Pull Request
         id: cpr
         uses: peter-evans/create-pull-request@v5
