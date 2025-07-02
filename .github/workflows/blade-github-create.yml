@@ -58,7 +58,7 @@ jobs:
           yarn run test:react-native Icons --updateSnapshot 
          
       - name: Lint Source Code
-        run: yarn lint
+        run: yarn lint:fix
 
       - name: Create Pull Request
         id: cpr
