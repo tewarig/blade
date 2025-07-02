@@ -50,12 +50,12 @@ jobs:
       - name : Update React Tests 
         run: |
          cd packages/blade
-         yarn run test:react --updateSnapshot 
+         yarn run test:react Icons --updateSnapshot 
 
       - name : Update React Tests 
         run: |
           cd packages/blade
-          yarn run test:react-native --updateSnapshot 
+          yarn run test:react-native Icons --updateSnapshot 
          
       - name: Lint Source Code
         run: yarn lint
