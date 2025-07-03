@@ -1,6 +1,5 @@
 const path = require('path');
 const fs = require('fs');
-const axios = require('axios');
 
 const FILE_ID = 'jubmQL9Z8V7881ayUD95ps';
 const NODE_ID = '103317-3667';
@@ -22,17 +21,8 @@ async function updateIconsJson(componentNames, svgData) {
 
 async function fetchComponentSVGs(componentIds, componentNames) {
   try {
-    // const response = await axios.get(`https://api.figma.com/v1/images/${FILE_ID}`, {
-    //   headers: {
-    //     'X-Figma-Token': process.env.FIGMA_API_TOKEN,
-    //   },
-    //   params: {
-    //     ids: componentIds.join(','),
-    //     format: 'svg',
-    //   },
-    // });
     const idsParam = componentIds.join(',');
-    let url = `https://api.figma.com/v1/images/${FILE_ID}?ids=${encodeURIComponent(
+    const url = `https://api.figma.com/v1/images/${FILE_ID}?ids=${encodeURIComponent(
       idsParam,
     )}&format=svg`;
 
@@ -50,10 +40,10 @@ async function fetchComponentSVGs(componentIds, componentNames) {
 
     const svgData = await Promise.all(
       componentIds.map(async (id) => {
-        const url1 = imageUrls[id];
-        const response01 = await fetch(url1);
+        const imageUrl = imageUrls[id];
+        const response01 = await fetch(imageUrl);
         if (!response01.ok) {
-          throw new Error(`Failed to fetch ${url1}: ${response01.statusText}`);
+          throw new Error(`Failed to fetch ${imageUrl}: ${response01.statusText}`);
         }
         const text = await response01.text();
         return text;
@@ -68,33 +58,25 @@ async function fetchComponentSVGs(componentIds, componentNames) {
 
 async function fetchNode() {
   try {
-    // const response = await axios.get(`https://api.figma.com/v1/files/${FILE_ID}/nodes`, {
-    //   headers: {
-    //     'X-Figma-Token': process.env.FIGMA_API_TOKEN,
-    //   },
-    //   params: {
-    //     ids: NODE_ID,
-    //   },
-    // });
-
-    // const nodeData = response.data;
+    const query = new URLSearchParams({
+      ids: NODE_ID,
+    }).toString();
     const url = `https://api.figma.com/v1/files/${FILE_ID}/nodes?${query}`;
 
-    const response2 = await fetch(url, {
+    const ResponseWithNodes = await fetch(url, {
       method: 'GET',
       headers: {
         'X-Figma-Token': process.env.FIGMA_API_TOKEN,
         Accept: 'application/json',
       },
     });
-    const finalResponse = await response2.json();
+    const finalResponse = await ResponseWithNodes.json();
     const { nodes } = finalResponse;
     const key = Object.keys(nodes)[0];
     const componentsToBeAdded = nodes[key].document.children;
     const componentIds = componentsToBeAdded.map((component) => component.id);
     const componentNames = componentsToBeAdded.map((component) => component.name);
     fetchComponentSVGs(componentIds, componentNames);
-    //
   } catch (error) {
     console.error('Error fetching node:', error);
   }
