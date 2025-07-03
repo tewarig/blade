@@ -22,24 +22,41 @@ async function updateIconsJson(componentNames, svgData) {
 
 async function fetchComponentSVGs(componentIds, componentNames) {
   try {
-    const response = await axios.get(`https://api.figma.com/v1/images/${FILE_ID}`, {
+    // const response = await axios.get(`https://api.figma.com/v1/images/${FILE_ID}`, {
+    //   headers: {
+    //     'X-Figma-Token': process.env.FIGMA_API_TOKEN,
+    //   },
+    //   params: {
+    //     ids: componentIds.join(','),
+    //     format: 'svg',
+    //   },
+    // });
+    const idsParam = componentIds.join(',');
+    let url = `https://api.figma.com/v1/images/${FILE_ID}?ids=${encodeURIComponent(
+      idsParam,
+    )}&format=svg`;
+
+    const response = await fetch(url, {
+      method: 'GET',
       headers: {
         'X-Figma-Token': process.env.FIGMA_API_TOKEN,
-      },
-      params: {
-        ids: componentIds.join(','),
-        format: 'svg',
+        Accept: 'application/json',
       },
     });
+    const data = await response.json();
 
-    const imageUrls = response.data.images;
+    const imageUrls = data.images;
     console.log('SVG URLs:', imageUrls);
 
     const svgData = await Promise.all(
       componentIds.map(async (id) => {
-        const url = imageUrls[id];
-        const svgResponse = await axios.get(url, { responseType: 'text' });
-        return svgResponse.data;
+        const url1 = imageUrls[id];
+        const response01 = await fetch(url1);
+        if (!response01.ok) {
+          throw new Error(`Failed to fetch ${url1}: ${response01.statusText}`);
+        }
+        const text = await response01.text();
+        return text;
       }),
     );
 
@@ -51,17 +68,27 @@ async function fetchComponentSVGs(componentIds, componentNames) {
 
 async function fetchNode() {
   try {
-    const response = await axios.get(`https://api.figma.com/v1/files/${FILE_ID}/nodes`, {
+    // const response = await axios.get(`https://api.figma.com/v1/files/${FILE_ID}/nodes`, {
+    //   headers: {
+    //     'X-Figma-Token': process.env.FIGMA_API_TOKEN,
+    //   },
+    //   params: {
+    //     ids: NODE_ID,
+    //   },
+    // });
+
+    // const nodeData = response.data;
+    const url = `https://api.figma.com/v1/files/${FILE_ID}/nodes?${query}`;
+
+    const response2 = await fetch(url, {
+      method: 'GET',
       headers: {
         'X-Figma-Token': process.env.FIGMA_API_TOKEN,
-      },
-      params: {
-        ids: NODE_ID,
+        Accept: 'application/json',
       },
     });
-
-    const nodeData = response.data;
-    const { nodes } = nodeData;
+    const finalResponse = await response2.json();
+    const { nodes } = finalResponse;
     const key = Object.keys(nodes)[0];
     const componentsToBeAdded = nodes[key].document.children;
     const componentIds = componentsToBeAdded.map((component) => component.id);
