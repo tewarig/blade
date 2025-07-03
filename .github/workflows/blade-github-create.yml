@@ -20,6 +20,14 @@ jobs:
         with:
           fetch-depth: 0
 
+
+      - name: Update icons.json
+        env:
+          FIGMA_API_TOKEN: ${{ secrets.FIGMA_API_TOKEN }}
+        run: |
+          cd packages/blade
+          node ./scripts/getSvgFromFigma.js
+
       # 2. decide what text we’ll put in the file
       - name: Set up Node.js
         uses: actions/setup-node@v2
@@ -33,13 +41,7 @@ jobs:
         run: |
          cd packages/blade
          yarn install --frozen-lockfile
-      
-      - name: Update icons.json
-        env:
-          FIGMA_API_TOKEN: ${{ secrets.FIGMA_API_TOKEN }}
-        run: |
-          cd packages/blade
-          node ./scripts/getSvgFromFigma.js
+    
   
   
       - name : Update icons Script
