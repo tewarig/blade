@@ -32,7 +32,7 @@ async function fetchComponentSVGs(componentIds, componentNames) {
     //   },
     // });
     const idsParam = componentIds.join(',');
-    let url = `https://api.figma.com/v1/images/${FILE_ID}?ids=${encodeURIComponent(
+    const url = `https://api.figma.com/v1/images/${FILE_ID}?ids=${encodeURIComponent(
       idsParam,
     )}&format=svg`;
 
